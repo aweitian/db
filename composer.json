@@ -1,0 +1,33 @@
+{
+  "name": "aweitian/db",
+  "description": "DB",
+  "type": "project",
+  "keywords": [
+    "aweitian",
+    "tiananwei",
+    "db"
+  ],
+  "homepage": "https://github.com/aweitian/db",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "awei.tian@qq.com",
+      "email": "531164479@qq.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=5.4.0",
+    "aweitian/db-reflection": "dev-master",
+	"aweitian/sql-builder": "dev-master"
+  },
+  "require-dev": {
+        "phpunit/phpunit": "~5.0"
+  },
+  "autoload": {
+    "files": [],
+    "psr-4": {
+      "Tian\\Db\\": "src/"
+    }
+  }
+}
