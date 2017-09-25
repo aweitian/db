@@ -6,53 +6,59 @@
  * @mysql CRUD快速操作
  */
 namespace Tian\Db;
-
+use \Tian\Connection\MysqlPdoConn;
+use \Tian\SqlBuild\MysqlBuild;
+use \Tian\ICache;
+use \Tian\Base\Arr;
 class MysqlDb {
 	/**
 	 *
-	 * @var \Tian\Connection\MysqlPdoConn
+	 * @var MysqlPdoConn
 	 */
 	public $connection;
 	/**
 	 *
-	 * @var \Tian\ICache
+	 * @var ICache
 	 */
 	public $cache;
 	
 	/**
 	 *
-	 * @var \Tian\MysqlTableReflection
+	 * @var MysqlTableReflection
 	 */
 	public $tableReflection;
 	/**
 	 *
-	 * @var \Tian\MysqlTableReflection
+	 * @var MysqlTableReflection
 	 */
 	private $table;
 	/**
 	 *
-	 * @var \Tian\SqlBuild\MysqlBuild
+	 * @var MysqlBuild
 	 */
 	private $sqlBuild;
-	public function __construct(\Tian\MysqlTableReflection $ref) {
+	public function __construct(MysqlTableReflection $ref) {
 		$this->tableReflection = $ref;
 		$this->connection = $ref->connection;
 		$this->cache = $ref->cache;
 	}
 	public function table($tab) {
 		$this->tableReflection->setTableName ( $tab );
-		$this->sqlBuild = new \Tian\SqlBuild\MysqlBuild ( $tab );
+		$this->sqlBuild = new MysqlBuild ( $tab );
 		return $this;
 	}
-	/**
-	 * where(2)
-	 * where("tb1.id = 10");
-	 * where('name','Laravel-Academy')
-	 * where("tb1.name = concat('dd',:lol,'gg') and tb1.id > :id",['lol' => 'lol_value','id' => 20])
-	 * where('id', '>', 3)
-	 *
-	 * @return [expr,bind]
-	 */
+
+    /**
+     * where(2)
+     * where("tb1.id = 10");
+     * where('name','Laravel-Academy')
+     * where("tb1.name = concat('dd',:lol,'gg') and tb1.id > :id",['lol' => 'lol_value','id' => 20])
+     * where('id', '>', 3)
+     *
+     * @param $arg
+     * @return array [expr,bind]
+     * @throws \Exception
+     */
 	protected function parseWhere($arg) {
 		$num = count ( $arg );
 		switch ($num) {
@@ -136,8 +142,10 @@ class MysqlDb {
 		$k = array_keys ( $bind );
 		if (preg_match ( "/^:\w+$/", $k [0] ) && preg_match ( "/^:\w+$/", $k [1] )) {
 			$this->sqlBuild->bindWhere ( "`$field` BETWEEN " . $k [0] . " AND " . $k [1] . "" );
-			$this->sqlBuild->bindValue ( $bind );
-		} else if (! \Tian\Base\Arr::isAssoc ( $bind )) {
+            if (isset($this->sqlBuild)) {
+                $this->sqlBuild->bindValue ( $bind );
+            }
+		} else if (! Arr::isAssoc ( $bind )) {
 			$this->sqlBuild->bindWhere ( "`$field` BETWEEN " . $bind [0] . " AND " . $bind [1] . "" );
 		}
 		
@@ -156,7 +164,7 @@ class MysqlDb {
 		if (preg_match ( "/^:\w+$/", $k [0] ) && preg_match ( "/^:\w+$/", $k [1] )) {
 			$this->sqlBuild->bindWhere ( "`$field` NOT BETWEEN " . $k [0] . " AND " . $k [1] . "" );
 			$this->sqlBuild->bindValue ( $bind );
-		} else if (! \Tian\Base\Arr::isAssoc ( $bind )) {
+		} else if (! Arr::isAssoc ( $bind )) {
 			$this->sqlBuild->bindWhere ( "`$field` NOT BETWEEN " . $bind [0] . " AND " . $bind [1] . "" );
 		}
 		
@@ -253,7 +261,7 @@ class MysqlDb {
 			$this->sqlBuild->bindHaving ( $expr, $oper );
 		else if (is_string ( $oper ))
 			if (is_array ( $bind )) {
-				if (count ( $bind ) == 1 && \Tian\Base\Arr::isAssoc ( $bind ))
+				if (count ( $bind ) == 1 && Arr::isAssoc ( $bind ))
 					$this->sqlBuild->bindHaving ( $expr . $oper . ':' . key ( $bind ), $bind );
 			} else if (is_numeric ( $bind ) || is_string ( $bind )) {
 				$this->sqlBuild->bindHaving ( $expr . $oper . $bind );
@@ -335,6 +343,6 @@ class MysqlDb {
 	 */
 	public function lists($filed, $key = null) {
 		$data = $this->get ();
-		return \Tian\Base\Arr::column ( $data, $filed, $key );
+		return Arr::column ( $data, $filed, $key );
 	}
 }
